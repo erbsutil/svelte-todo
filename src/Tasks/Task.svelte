@@ -5,6 +5,27 @@
   let validDescription = false;
   $: validDescription = newDescription.trim().length >= 5; // declaração reativa
 
+  function getTasks() {
+    fetch(
+      "https://svelte-todo-app-93931-default-rtdb.firebaseio.com/tasks.json"
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("An error occurred while fetching tasks!");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        tasks = Object.entries(data).map(([id, task]) => ({
+          id,
+          description: task.description,
+        }));
+      })
+      .catch((error) => console.log(error));
+  }
+
+  getTasks();
+
   function newTask() {
     id = null;
     newDescription = "";
@@ -14,13 +35,17 @@
   function submitTask() {
     insertTask(); // insere tarefas no banco de dados.
   }
+
   function insertTask() {
     const taskData = { description: newDescription };
-    fetch("https://svelte-todo-app-93931-default-rtdb.firebaseio.com/tasks.json", {
-      method: "POST",
-      body: JSON.stringify(taskData),
-      headers: { "Content-Type": "application/json" },
-    })
+    fetch(
+      "https://svelte-todo-app-93931-default-rtdb.firebaseio.com/tasks.json",
+      {
+        method: "POST",
+        body: JSON.stringify(taskData),
+        headers: { "Content-Type": "application/json" },
+      }
+    )
       .then((response) => {
         if (!response.ok) {
           throw new error("An error occurred, please try again!");
@@ -88,5 +113,14 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <h2 class="title">Tasks</h2>
+  <div>
+    <ul>
+      {#each tasks as task (task.id)}
+        <li>{task.description}</li>
+      {/each}
+    </ul>
   </div>
 </div>
